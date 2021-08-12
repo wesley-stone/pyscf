@@ -36,6 +36,9 @@ from pyscf.scf import chkfile
 from pyscf.data import nist
 from pyscf import __config__
 
+from datetime import datetime
+import pickle
+
 WITH_META_LOWDIN = getattr(__config__, 'scf_analyze_with_meta_lowdin', True)
 PRE_ORTH_METHOD = getattr(__config__, 'scf_analyze_pre_orth_method', 'ANO')
 MO_BASE = getattr(__config__, 'MO_BASE', 1)
@@ -123,8 +126,14 @@ Keyword argument "init_dm" is replaced by "dm0"''')
     else:
         dm = dm0
 
+    vhfs = []
     h1e = mf.get_hcore(mol)
     vhf = mf.get_veff(mol, dm)
+    vhfs.append({
+        'vj': vhf.vj,
+        'vk': vhf.vk,
+        'dm': dm
+    })
     e_tot = mf.energy_tot(dm, h1e, vhf)
     logger.info(mf, 'init E= %.15g', e_tot)
 
@@ -175,6 +184,11 @@ Keyword argument "init_dm" is replaced by "dm0"''')
         # attach mo_coeff and mo_occ to dm to improve DFT get_veff efficiency
         dm = lib.tag_array(dm, mo_coeff=mo_coeff, mo_occ=mo_occ)
         vhf = mf.get_veff(mol, dm, dm_last, vhf)
+        vhfs.append({
+            'vj': vhf.vj,
+            'vk': vhf.vk,
+            'dm': dm
+        })
         e_tot = mf.energy_tot(dm, h1e, vhf)
 
         # Here Fock matrix is h1e + vhf, without DIIS.  Calling get_fock
@@ -234,6 +248,11 @@ Keyword argument "init_dm" is replaced by "dm0"''')
     logger.timer(mf, 'scf_cycle', *cput0)
     # A post-processing hook before return
     mf.post_kernel(locals())
+
+    save_pth = f'kernel_{str(datetime.now())}.dt'
+    with open(save_pth, 'wb') as fp:
+        pickle.dump(vhfs, fp)
+    
     return scf_conv, e_tot, mo_energy, mo_coeff, mo_occ
 
 
