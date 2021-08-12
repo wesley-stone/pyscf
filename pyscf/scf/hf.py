@@ -129,11 +129,15 @@ Keyword argument "init_dm" is replaced by "dm0"''')
     vhfs = []
     h1e = mf.get_hcore(mol)
     vhf = mf.get_veff(mol, dm)
-    vhfs.append({
-        'vj': vhf.vj,
-        'vk': vhf.vk,
-        'dm': dm
-    })
+
+    # Save intermediate results.
+    if mol.log_path is not None:
+        vhfs.append({
+            'vj': vhf.vj,
+            'vk': vhf.vk,
+            'dm': dm
+        })
+
     e_tot = mf.energy_tot(dm, h1e, vhf)
     logger.info(mf, 'init E= %.15g', e_tot)
 
@@ -184,11 +188,14 @@ Keyword argument "init_dm" is replaced by "dm0"''')
         # attach mo_coeff and mo_occ to dm to improve DFT get_veff efficiency
         dm = lib.tag_array(dm, mo_coeff=mo_coeff, mo_occ=mo_occ)
         vhf = mf.get_veff(mol, dm, dm_last, vhf)
-        vhfs.append({
-            'vj': vhf.vj,
-            'vk': vhf.vk,
-            'dm': dm
-        })
+
+        if mol.log_path is not None:
+            vhfs.append({
+                'vj': vhf.vj,
+                'vk': vhf.vk,
+                'dm': dm
+            })
+
         e_tot = mf.energy_tot(dm, h1e, vhf)
 
         # Here Fock matrix is h1e + vhf, without DIIS.  Calling get_fock
@@ -249,9 +256,9 @@ Keyword argument "init_dm" is replaced by "dm0"''')
     # A post-processing hook before return
     mf.post_kernel(locals())
 
-    save_pth = f'kernel_{str(datetime.now())}.dt'
-    with open(save_pth, 'wb') as fp:
-        pickle.dump(vhfs, fp)
+    if mol.log_path is not None:
+        with open(mol.log_path, 'wb') as fp:
+            pickle.dump(vhfs, fp)
     
     return scf_conv, e_tot, mo_energy, mo_coeff, mo_occ
 

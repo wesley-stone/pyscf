@@ -2121,6 +2121,11 @@ class Mole(lib.StreamObject):
         self._keys = set(self.__dict__.keys()).union(keys)
         self.__dict__.update(kwargs)
 
+        self.log_path = None
+        # Save log in the path.
+        if 'log_path' in kwargs:
+            self.log_path = kwargs['log_path']
+
     @property
     def natm(self):
         return len(self._atm)
