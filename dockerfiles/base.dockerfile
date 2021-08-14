@@ -27,7 +27,7 @@ WORKDIR /root
 # install libcint
 RUN git clone https://github.com/sunqm/libcint.git
 WORKDIR /root/libcint
-RUN git checkout v4.4.4 && mkdir build
+RUN git checkout v4.0.7 && mkdir build
 WORKDIR /root/libcint/build
 RUN cmake -DWITH_F12=1 -DWITH_RANGE_COULOMB=1 -DWITH_COULOMB_ERF=1 \
     -DCMAKE_INSTALL_PREFIX:PATH=/opt -DCMAKE_INSTALL_LIBDIR:PATH=lib ..
@@ -47,7 +47,8 @@ RUN make && make install
 # install xcfun
 WORKDIR /root
 RUN git clone https://github.com/sunqm/xcfun.git
-RUN mkdir /root/xcfun/build
+WORKDIR /root/xcfun
+RUN git checkout cmake-3.5 && mkdir build
 WORKDIR /root/xcfun/build
 RUN cmake -DCMAKE_BUILD_TYPE=RELEASE -DBUILD_SHARED_LIBS=1 -DXC_MAX_ORDER=3 -DXCFUN_ENABLE_TESTS=0 \
     -DCMAKE_INSTALL_PREFIX:PATH=/opt -DCMAKE_INSTALL_LIBDIR:PATH=lib ..
@@ -55,3 +56,5 @@ RUN make && make install
 
 
 WORKDIR /root
+ENV LD_LIBRARY_PATH /opt/intel/compilers_and_libraries/linux/mkl/lib/intel64:/opt/lib
+RUN pip install numpy scipy pandas h5py==2.10.0
