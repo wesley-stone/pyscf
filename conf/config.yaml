@@ -1,8 +1,0 @@
-task: collect_data
-
-defaults:
-  - data: h2o
-
-hydra:
-  run:
-    dir: /mnt/exp/eri/${task}/${now:%Y-%m-%d-%H-%M-%S.%f}/
