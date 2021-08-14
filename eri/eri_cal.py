@@ -137,6 +137,7 @@ def generate_h2o_data(cfg, logger):
     atm_caos = []
     log_folder = 'scf/'
     create_if_not_exist(log_folder)
+    logger.info('generating contracted ao...')
     for i, h2_xyz in enumerate(atm_xyzs):
         for h_xyz in h2_xyz:
             xyz_str = xyz_str + f'H {h_xyz[0]} {h_xyz[1]} {h_xyz[2]};'
@@ -149,6 +150,7 @@ def generate_h2o_data(cfg, logger):
     fns = sorted(fns, key=lambda x: int(x.split('.')[0]))
 
     data = []
+    logger.info('extract dm and vj...')
     for caos, fn in zip(atm_caos, fns):
         abs_fn = os.path.join(log_folder, fn)
         with open(abs_fn, 'rb') as fp:
