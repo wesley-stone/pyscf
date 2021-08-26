@@ -30,6 +30,7 @@ import h5py
 from pyscf import gto
 from pyscf import lib
 from pyscf.lib import logger
+from pyscf.cstm import VjPredictor
 from pyscf.scf import diis
 from pyscf.scf import _vhf
 from pyscf.scf import chkfile
@@ -1467,6 +1468,8 @@ class SCF(lib.StreamObject):
                     'diis_file', 'diis_space_rollback', 'damp', 'level_shift',
                     'direct_scf', 'direct_scf_tol', 'conv_check'))
         self._keys = set(self.__dict__.keys()).union(keys)
+
+        self.vj_predictor = None
 
     def build(self, mol=None):
         if mol is None: mol = self.mol
