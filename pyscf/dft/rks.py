@@ -108,11 +108,11 @@ def get_veff(ks, mol=None, dm=None, dm_last=0, vhf_last=0, hermi=1):
             ddm = numpy.asarray(dm) - numpy.asarray(dm_last)
             vj = ks.get_j(mol, ddm, hermi)
             vj += vhf_last.vj
+            if ks.vj_predictor is not None:
+                vj = ks.vj_predictor.get_vj(dm, vj, dm_last, vhf_last.vj)
         else:
             vj = ks.get_j(mol, dm, hermi)
         # if there is a predictor from neural network, 
-        if ks.vj_predictor is not None:
-            vj = ks.vj_predictor.get_vj(dm, vj)
         vxc += vj
     else:
         if (ks._eri is None and ks.direct_scf and
@@ -129,6 +129,10 @@ def get_veff(ks, mol=None, dm=None, dm_last=0, vhf_last=0, hermi=1):
             # print(delta_ratio)
             vj += vhf_last.vj
             vk += vhf_last.vk
+            print(f'delta dm norm is {numpy.linalg.norm(ddm)}')
+            # if there is a predictor from neural network, 
+            if ks.vj_predictor is not None:
+                vj = ks.vj_predictor.get_vj(dm, vj, dm_last, vhf_last.vj)
         else:
             vj, vk = ks.get_jk(mol, dm, hermi)
             vk *= hyb
@@ -136,9 +140,9 @@ def get_veff(ks, mol=None, dm=None, dm_last=0, vhf_last=0, hermi=1):
                 vklr = ks.get_k(mol, dm, hermi, omega=omega)
                 vklr *= (alpha - hyb)
                 vk += vklr
-        # if there is a predictor from neural network, 
-        if ks.vj_predictor is not None:
-            vj = ks.vj_predictor.get_vj(dm, vj)
+            # if there is a predictor from neural network, 
+            if ks.vj_predictor is not None:
+                vj = ks.vj_predictor.get_vj(dm, vj, 0, 0)
         vxc += vj - vk * .5
 
         if ground_state:
