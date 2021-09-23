@@ -109,14 +109,14 @@ def get_veff(ks, mol=None, dm=None, dm_last=0, vhf_last=0, hermi=1):
             vj = ks.get_j(mol, ddm, hermi)
             vj += vhf_last.vj
             if ks.vj_predictor is not None:
-                vj = ks.vj_predictor.get_vj(dm, vj, dm_last, vhf_last.vj)
+                vj = ks.vj_predictor.get_vj(dm, vj, dm_last, vhf_last)
         else:
             vj = ks.get_j(mol, dm, hermi)
-        # if there is a predictor from neural network, 
         vxc += vj
     else:
-        if (ks._eri is None and ks.direct_scf and
+        if ((ks._eri is None or ks.vj_predictor is not None) and ks.direct_scf and
             getattr(vhf_last, 'vk', None) is not None):
+            # force algorithm to go through this path if vj_predictor is not None.
             ddm = numpy.asarray(dm) - numpy.asarray(dm_last)
             vj, vk = ks.get_jk(mol, ddm, hermi)
             vk *= hyb
@@ -132,7 +132,7 @@ def get_veff(ks, mol=None, dm=None, dm_last=0, vhf_last=0, hermi=1):
             print(f'delta dm norm is {numpy.linalg.norm(ddm)}')
             # if there is a predictor from neural network, 
             if ks.vj_predictor is not None:
-                vj = ks.vj_predictor.get_vj(dm, vj, dm_last, vhf_last.vj)
+                vj = ks.vj_predictor.get_vj(dm, vj, dm_last, vhf_last)
         else:
             vj, vk = ks.get_jk(mol, dm, hermi)
             vk *= hyb
@@ -142,7 +142,7 @@ def get_veff(ks, mol=None, dm=None, dm_last=0, vhf_last=0, hermi=1):
                 vk += vklr
             # if there is a predictor from neural network, 
             if ks.vj_predictor is not None:
-                vj = ks.vj_predictor.get_vj(dm, vj, 0, 0)
+                vj = ks.vj_predictor.get_vj(dm, vj, dm_last, vhf_last)
         vxc += vj - vk * .5
 
         if ground_state:
